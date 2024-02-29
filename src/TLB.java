@@ -1,25 +1,42 @@
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class TLB {
-    private Map<Integer, Integer> entries;
-    private final int maxSize;
-    public TLB(int maxSize){
-        this.maxSize = maxSize;
-        this.entries = new LinkedHashMap<>(maxSize, 0.75f, true){
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {
-            return size() > maxSize;
-            }
-        };
-    }
-    public void addEntry(int pageNumber, int frameNumber){
-        entries.put(pageNumber, frameNumber);
+    private int size;
+    private ArrayList<HashMap<Integer, Integer>> entries;
+
+    public TLB(int size) {
+        this.size = size;
+        this.entries = new ArrayList<>();
     }
 
-    public Integer getFrameNumber(int pageNumber){
-        return entries.get(pageNumber);
+    public TLB() {
+        this(16); // Default size is 16
     }
-    // Implement TLB with a fixed size, store page number and frame number
+
+    public int lookup(int pageNumber) throws Exception {
+        for (HashMap<Integer, Integer> entry : entries) {
+            if (entry.containsKey(pageNumber)) {
+                return entry.get(pageNumber);
+            }
+        }
+        throw new Exception("Page " + pageNumber + " not found in TLB.");
+    }
+
+    public void update(int pageNumber, int frameNumber) {
+        for (HashMap<Integer, Integer> entry : entries) {
+            if (entry.containsKey(pageNumber)) {
+                entry.put(pageNumber, frameNumber);
+                return;
+            }
+        }
+        if (entries.size() >= size) {
+            entries.remove(0);
+        }
+        HashMap<Integer, Integer> newEntry = new HashMap<>();
+        newEntry.put(pageNumber, frameNumber);
+        entries.add(newEntry);
+    }
 }
